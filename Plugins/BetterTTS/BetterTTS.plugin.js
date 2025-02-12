@@ -61,7 +61,7 @@ const config = {
             { type: "switch", id: "blockMutedChannels", name: "Block Muted Channels", note: "Blocks muteds channels from TTS.", value: true },
             { type: "switch", id: "blockMutedGuilds", name: "Block Muted Guilds", note: "Blocks muteds server/guilds from TTS.", value: false },
         ]},
-        { type: "slider", id: "ttsVolume", name: "TTS Volume", note: "Changes the volume of the TTS.", step: 1, value: 100, min: 0, max: 100, units: "x", markers: [0, 25, 50, 75, 100], inline: false },
+        { type: "slider", id: "ttsVolume", name: "TTS Volume", note: "Changes the volume of the TTS.", step: 0.001, value: 1, min: 0, max: 1, units: "x", markers: [0, 0.25, 0.50, 0.75, 1], inline: false },
         { type: "slider", id: "ttsSpeechRate", name: "TTS Speech Rate", note: "Changes the speed of the TTS.", step: 0.05, value: 1, min: 0.1, max: 2, units: "x", markers: [0.1, 1, 1.25, 1.5, 1.75, 2], inline: false },
         { type: "number", id: "ttsDelayBetweenMessages", name: "Delay Between messages (ms)", note: "Only works for Syncronous messages.", value: 1000 },
         { type: "keybind", id: "ttsToggle", name: "Toggle TTS", note: "Shortcut to toggle the TTS.", value: [] },
@@ -218,7 +218,7 @@ module.exports = class BetterTTS {
                 this.AudioPlayer.updateRate(value);
                 break;
             case "ttsVolume":
-                this.AudioPlayer.updateVolume(value/100);
+                this.AudioPlayer.updateVolume(value);
                 break;
             case "ttsDelayBetweenMessages":
                 value = parseInt(value);
@@ -589,6 +589,10 @@ module.exports = class BetterTTS {
     }
 };
 
+function clamp(number, min, max) {
+    return Math.max(min, Math.min(number, max));
+  }
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 class AudioPlayer {
@@ -661,7 +665,7 @@ class AudioPlayer {
             }
             if (this.audio) {
                 this.audio.playbackRate = this.rate;
-                this.audio.volume = this.volume / 100;
+                this.audio.volume = clamp(this.volume, 0, 1);
                 this.audio.addEventListener('ended', async () => {
                     await delay(this.delay);
                     if (this.messagesToPlay.length === 0) {
